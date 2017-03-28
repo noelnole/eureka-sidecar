@@ -1,0 +1,23 @@
+FROM java:8
+MAINTAINER trushn45@gmail.com
+VOLUME /tmp
+#We added a VOLUME pointing to "/tmp" because that is where a Spring Boot application creates working directories for Tomcat by default
+EXPOSE 8761
+
+ENV USER_NAME eurekaserver
+ENV APP_HOME /home/$USER_NAME/app
+
+#Se añade el USER_NAME con useradd
+RUN useradd -ms /bin/bash $USER_NAME
+RUN mkdir $APP_HOME
+
+ADD target/eureka-server-1.0-SNAPSHOT.jar $APP_HOME/eureka-server-1.0-SNAPSHOT.jar
+RUN chown $USER_NAME $APP_HOME/eureka-server-1.0-SNAPSHOT.jar
+
+USER $USER_NAME
+WORKDIR $APP_HOME
+RUN bash -c 'touch eureka-server-1.0-SNAPSHOT.jar'
+# command is to ‘touch’ the JAR and give it a modified date.
+#This actually isn’t important for the simple app that we wrote, but any static content (e.g. "index.html") would require the file to have a modification time.
+
+ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-jar","eureka-server-1.0-SNAPSHOT.jar"]

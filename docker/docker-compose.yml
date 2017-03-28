@@ -1,0 +1,54 @@
+version: '2'
+services:
+  eureka-server:
+    container_name: eureka-server
+      build:
+        context: .
+        dockerfile: Dockerfile.eureka
+      image: eureka-server:latest
+      expose:
+        - 8761
+      networks:
+        - eureka-network
+      logging:
+        driver: json-file
+  sidecar-client:
+    container_name: sidecar-client
+      build:
+        context: .
+        dockerfile: Dockerfile.sidecar
+      image: sidecar-client:latest
+      expose:
+        - 5678
+      ports:
+        - 5678:5678
+      networks:
+        - spring-cloud-network
+      links:
+        - eureka-server:eureka-server
+      depends_on:
+        - eureka-server
+      logging:
+        driver: json-file
+  hello-world:
+    container_name: koa-hello-world
+      build:
+        context: .
+        dockerfile: Dockerfile.Node
+      image: koa-hello-world:latest
+      expose:
+        - 5678
+      ports:
+        - 5678:5678
+      networks:
+      - spring-cloud-network
+      links:
+        - eureka-server:eureka-server
+      depends_on:
+        - eureka-server
+      logging:
+        driver: json-file		
+networks:
+  spring-cloud-network:
+    driver: bridge
+
